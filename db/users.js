@@ -17,7 +17,22 @@ async function createUser({ username, password }) {
 }
 
 async function getUser({ username, password }) {
-
+  try {
+    const {rows: [verifyUser]} = await client.query(`
+    SELECT id, username, password FROM users WHERE username=$1`, [username]);
+    if (verifyUser.password !== password) {
+      // throw new Error ("Passwords do not match our records") --> Error didn't pass test so I changed to return null;
+      return null;
+    } else if (!verifyUser) {
+      throw new Error ("User not found")
+    } else if (verifyUser.password === password) {
+     const {password, ...rest} = verifyUser
+     const user = rest
+     return user;
+    }
+  } catch (error) {
+    return (error);
+  }
 }
 
 async function getUserById(userId) {
