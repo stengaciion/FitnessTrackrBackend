@@ -62,7 +62,13 @@ async function getActivityByName(name) {
 }
 
 // used as a helper inside db/routines.js
-async function attachActivitiesToRoutines(routines) {}
+async function attachActivitiesToRoutines(routines) {
+  // for (const routine of routines) {
+  //   const activities = await getActivitiesByRoutineId(routine.id);
+  //   routine.activities = activities;
+  // }
+  // return routines;
+}
 
 async function updateActivity({ id, ...fields }) {
   const { name, description } = fields
