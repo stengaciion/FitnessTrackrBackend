@@ -1,7 +1,7 @@
 // require in the database adapter functions as you write them (createUser, createActivity...)
  const { createUser } = require("./users.js");
  const { createActivity, getAllActivities } = require("./activities.js");
- const { createRoutine } = require("./routines.js");
+ const { createRoutine, getRoutinesWithoutActivities } = require("./routines.js");
  const { addActivityToRoutine } = require("./routine_activities.js");
 const client = require("./client")
 
