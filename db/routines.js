@@ -16,9 +16,14 @@ async function createRoutine({ creatorId, isPublic, name, goal }) {
 
 async function getRoutineById(id) {
   try {
-    const { rows: [routine]}= await client.query(`
-  SELECT * FROM routines WHERE id= $1
-    `,[id])
+    const {
+      rows: [routine],
+    } = await client.query(
+      `
+SELECT * FROM routines WHERE id=$1;
+    `,
+      [id]
+    );
 
     return routine;
   } catch (error) {
@@ -30,14 +35,29 @@ async function getRoutineById(id) {
 async function getRoutinesWithoutActivities() {
   try {
     const { rows } = await client.query(`
-    SELECT * FROM routines;`);
+    SELECT * FROM routines;`)
     return rows;
   } catch (error) {
-    return error;
+    return error
   }
 }
 
-async function getAllRoutines() {}
+async function getAllRoutines() {
+   try {
+    //get all routines
+    const { rows: allRoutines } = await client.query(`
+    SELECT routines.*, users.username AS "creatorName" 
+    FROM routines 
+    JOIN users ON routines."creatorId"=users.id;
+    `);
+    
+    const routinesWithActivities = await attachActivitiesToRoutines(allRoutines);
+    console.log("after getting all routines", routinesWithActivities);
+    return routinesWithActivities;
+  } catch (error) {
+    return error
+  }
+}
 
 async function getAllPublicRoutines() {
   try {
@@ -45,10 +65,14 @@ async function getAllPublicRoutines() {
     SELECT routines.*, users.username AS "creatorName"
     FROM routines
     JOIN users
-    ON routines."creatorId" = users.id
-    WHERE "isPublic" = true;
-    `);
-    return attachActivitiesToRoutines (routines);
+    ON routines."creatorId"=users.id
+    WHERE "isPublic"=true;
+     `);
+    const routinesWithActivities = await attachActivitiesToRoutines(
+      routines
+    );
+    console.log("after getting all routines", routinesWithActivities);
+    return routinesWithActivities;
   } catch (error) {
     console.error(error);
     throw error;
@@ -65,30 +89,33 @@ async function updateRoutine({ id, ...fields }) {}
 
 async function destroyRoutine(id) {
   try {
-    const { rows: routine_activities} = await client.query(
+    const { rows: routine_activities } = await client.query(
       `
-      DELETE FROM routine_activities WHERE "routineId" = $1`,
+      DELETE FROM routine_activities WHERE "routineId"=$1;`,
       [id]
     );
-const { rows } = await client.query(
-  `
+    const { rows } = await client.query(
+      `
   DELETE FROM routines
   WHERE id = $1
   RETURNING *;
 `,
-  [id]
-);
+      [id]
+    );
 
-   const outturn = {
-     deletedRoutineActivity: routine_activities[0],
-     deletedRoutine: rows[0]
-   };
-   return (outturn)
+    const outturn = {
+      deletedRoutineActivity: routine_activities[0],
+      deletedRoutine: rows[0],
+    };
+    return outturn;
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
+
+
+getAllRoutines();
 
 module.exports = {
   getRoutineById,
