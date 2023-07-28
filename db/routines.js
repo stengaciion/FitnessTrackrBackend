@@ -1,4 +1,5 @@
 const client = require("./client");
+const { attachActivitiesToRoutines } = require("./activities");
 
 async function createRoutine({ creatorId, isPublic, name, goal }) {
   try {
@@ -13,13 +14,46 @@ async function createRoutine({ creatorId, isPublic, name, goal }) {
   }
 }
 
-async function getRoutineById(id) {}
+async function getRoutineById(id) {
+  try {
+    const { rows: [routine]}= await client.query(`
+  SELECT * FROM routines WHERE id= $1
+    `,[id])
 
-async function getRoutinesWithoutActivities() {}
+    return routine;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+async function getRoutinesWithoutActivities() {
+  try {
+    const { rows } = await client.query(`
+    SELECT * FROM routines;`);
+    return rows;
+  } catch (error) {
+    return error;
+  }
+}
 
 async function getAllRoutines() {}
 
-async function getAllPublicRoutines() {}
+async function getAllPublicRoutines() {
+  try {
+    const { rows: routines } = await client.query(`
+    SELECT routines.*, users.username AS "creatorName"
+    FROM routines
+    JOIN users
+    ON routines."creatorId" = users.id
+    WHERE "isPublic" = true;
+    `);
+    return attachActivitiesToRoutines (routines);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
 async function getAllRoutinesByUser({ username }) {}
 
@@ -29,7 +63,32 @@ async function getPublicRoutinesByActivity({ id }) {}
 
 async function updateRoutine({ id, ...fields }) {}
 
-async function destroyRoutine(id) {}
+async function destroyRoutine(id) {
+  try {
+    const { rows: routine_activities} = await client.query(
+      `
+      DELETE FROM routine_activities WHERE "routineId" = $1`,
+      [id]
+    );
+const { rows } = await client.query(
+  `
+  DELETE FROM routines
+  WHERE id = $1
+  RETURNING *;
+`,
+  [id]
+);
+
+   const outturn = {
+     deletedRoutineActivity: routine_activities[0],
+     deletedRoutine: rows[0]
+   };
+   return (outturn)
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
 module.exports = {
   getRoutineById,
