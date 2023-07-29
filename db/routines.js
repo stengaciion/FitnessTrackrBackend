@@ -97,7 +97,7 @@ async function destroyRoutine(id) {
     const { rows } = await client.query(
       `
   DELETE FROM routines
-  WHERE id = $1
+  WHERE id=$1
   RETURNING *;
 `,
       [id]
@@ -115,7 +115,7 @@ async function destroyRoutine(id) {
 }
 
 
-getAllRoutines();
+// getAllRoutines();
 
 module.exports = {
   getRoutineById,

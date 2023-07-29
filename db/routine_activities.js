@@ -54,7 +54,53 @@ async function getRoutineActivitiesByRoutine({ id }) {
    }
 }
 
-async function updateRoutineActivity({ id, ...fields }) {}
+async function updateRoutineActivity({ id, ...fields }) {
+  const { duration, count } = fields;
+  // don't try to update the id
+  try {
+    if (duration && count) {
+      const {
+        rows: [updatedRoutineActivity],
+      } = await client.query(
+        `
+    UPDATE routine_activities
+    SET duration=$1, count=$2
+    WHERE id=${id}
+    RETURNING *`,
+        [duration, count]
+      );
+      return updatedRoutineActivity;
+    } else if (duration) {
+      const {
+        rows: [updatedRoutineActivity],
+      } = await client.query(
+        `
+    UPDATE routine_activities
+    SET duration=$1
+    WHERE id=${id}
+    RETURNING *`,
+        [duration]
+      );
+      return updatedRoutineActivity;
+    } else if (count) {
+      const {
+        rows: [updatedRoutineActivity],
+      } = await client.query(
+        `
+    UPDATE routine_activities
+    SET count=$1
+    WHERE id=${id}
+    RETURNING *`,
+        [count]
+      );
+      return updatedRoutineActivity;
+    } else {
+      return;
+    }
+  } catch (error) {
+    return error;
+  }
+}
 
 async function destroyRoutineActivity(id) {
   try {
@@ -73,7 +119,26 @@ async function destroyRoutineActivity(id) {
   }
 }
 
-async function canEditRoutineActivity(routineActivityId, userId) {}
+async function canEditRoutineActivity(routineActivityId, userId) {
+  try {
+    const {
+    rows: [activity]
+  } = await client.query(`
+  SELECT * FROM routine_activities 
+  JOIN routines 
+  ON routine_activities."routineId"=routines.id 
+  WHERE routine_activities."activityId"=$1;`
+  , [routineActivityId]);
+  console.log(activity)
+  if (activity.creatorId === userId) {
+    return true
+  } else {
+    return false
+  }
+  } catch (error) {
+    return error
+  }
+}
 
 module.exports = {
   getRoutineActivityById,
