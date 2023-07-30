@@ -59,8 +59,10 @@ app.use((req, res) => {
 
 //error handler
 app.use((error, req, res, next) => {
-   res.status(500).send({
-    error
+   res.send({
+    error: error.error,
+    name: error.name,
+    message: error.message
    });
 });
 
