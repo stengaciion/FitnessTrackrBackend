@@ -51,6 +51,43 @@ router.post('/register', async (req, res, next) => {
 })
 
 // POST /api/users/login
+router.post('/login', async (req, res, next) => {
+    const { username, password} = req.body;
+    if (!username || !password) {
+        next({
+            error: "Login Error",
+            name: "MissingCredentials",
+            message: "Please provide both a username and password"
+        })
+    }
+
+    try {
+        const user = await getUserByUsername(username);
+
+        if (user && user.password === password) {
+            const token = jwt.sign(
+              { id: user.id, username: user.username },
+              process.env.JWT_SECRET
+            );
+            res.send({
+                user: {
+                    id: user.id,
+                    username: user.username
+                },
+                message: "you're logged in!",
+                token: token
+            })
+        } else {
+            next({
+                error: "Login Error",
+                name: "IncorrectCredentials",
+                message: "Username or password is incorrect"
+            })
+        }
+    } catch ({ error, name, message }) {
+      next({ error, name, message });
+    }
+})
 
 // GET /api/users/me
 
