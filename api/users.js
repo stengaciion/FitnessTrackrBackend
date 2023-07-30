@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const { getUserByUsername, createUser } = require('../db/users.js')
+const { requireUser } = require('./utils.js')
+const { UnauthorizedError } = require("../errors.js");
 
 // POST /api/users/register
 router.post('/register', async (req, res, next) => {
@@ -90,6 +92,20 @@ router.post('/login', async (req, res, next) => {
 })
 
 // GET /api/users/me
+router.get('/me', requireUser, async (req, res, next) => {
+    if (!req.headers) {
+        res.status(401).send(UnauthorizedError())
+    }
+    try {
+        const user = await getUserByUsername(req.user.username)
+        res.send({
+            id: user.id,
+            username: user.username
+        })
+    } catch ({error, name, message}) {
+        next({ error, name, message })
+    }
+})
 
 // GET /api/users/:username/routines
 

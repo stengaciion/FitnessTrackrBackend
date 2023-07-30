@@ -13,6 +13,7 @@ app.use(express.json());
 const jwt = require("jsonwebtoken");
 const { getUserById } = require("./db/users");
 const { JWT_SECRET } = process.env;
+const { UnauthorizedError } = require('./errors')
 
 app.use(async (req, res, next) => {
   const prefix = "Bearer ";
@@ -29,12 +30,13 @@ app.use(async (req, res, next) => {
       if (id) {
         req.user = await getUserById(id);
         next();
-      }
-    } catch ({ name, message }) {
-      next({ name, message });
+      } 
+    } catch ({ error, name, message }) {
+      next({ error, name, message });
     }
   } else {
     next({
+      error: "Header error",
       name: "AuthorizationHeaderError",
       message: `Authorization token must start with ${prefix}`,
     });
@@ -43,7 +45,8 @@ app.use(async (req, res, next) => {
 
 app.use((req, res, next) => {
   if (req.user) {
-    console.log("User is set", req.user);
+    const user = req.user
+    console.log("User is set", user);
   }
   next();
 });
