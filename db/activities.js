@@ -3,10 +3,12 @@ const client = require('./client');
 // database functions
 async function createActivity({ name, description }) {
   // return the new activity
+  // const setLowerCaseName = name.toLowerCase()
   try {
     const {rows: [newActivity]} = await client.query(
       `INSERT INTO activities (name, description) 
     VALUES ($1, $2)
+    ON CONFLICT (name) DO NOTHING
     RETURNING *;
 `,
       [name, description]
