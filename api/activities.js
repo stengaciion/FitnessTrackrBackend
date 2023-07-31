@@ -8,8 +8,8 @@ const { requireUser } = require("./utils.js");
 router.get('/:activityId/routines', async (req, res, next) => {
     const { activityId } = req.params;
     try {
-        const activity = getPublicRoutinesByActivity(activityId)
-        res.status(200).send(activity)
+        const publicRoutines = await getPublicRoutinesByActivity({activityId})
+        res.status(200).send(publicRoutines)
     } catch ({error, name, message}) {
         next({error, name, message})        
     }
