@@ -6,10 +6,10 @@ const { requireUser } = require("./utils.js");
 
 // GET /api/activities/:activityId/routines
 router.get('/:activityId/routines', async (req, res, next) => {
-    const { activityId } = activityId;
+    const { activityId } = req.params;
     try {
-        // const activity = getPublicRoutinesByActivity(activityId)
-        // res.status(200).send(activity)
+        const activity = getPublicRoutinesByActivity(activityId)
+        res.status(200).send(activity)
     } catch ({error, name, message}) {
         next({error, name, message})        
     }
