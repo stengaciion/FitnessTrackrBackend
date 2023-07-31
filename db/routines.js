@@ -53,7 +53,7 @@ async function getAllRoutines() {
     
     const routinesWithActivities = await attachActivitiesToRoutines(allRoutines);
     console.log("after getting all routines", routinesWithActivities);
-    return attachActivitiesToRoutines(routinesWithActivities);
+    return routinesWithActivities;
   } catch (error) {
     return error
   }
@@ -132,7 +132,33 @@ try {
 }
 }
 
-async function updateRoutine({ id, ...fields }) {}
+async function updateRoutine({ id, ...fields }) {
+  // Object.keys method returns an array of the keys of the fields object.
+  const newString = Object.keys(fields)
+    .map((key, index) => `"${key}"=$${index + 1}`)
+    .join(",");
+
+  try {
+    if (newString.length > 0) {
+      const {
+        rows: [updatedRoutine],
+      } = await client.query(
+        `
+      UPDATE routines
+      SET ${newString}
+      WHERE id=${id}
+      RETURNING *;
+      `,
+        Object.values(fields)
+      );
+
+      return updatedRoutine;
+    }
+  } catch (error) {
+    console.log("error updating routine");
+    throw error;
+  }
+}
 
 async function destroyRoutine(id) {
   try {
