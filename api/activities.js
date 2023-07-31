@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createActivity, getAllActivities, getActivityByName } = require('../db/activities')
+const { createActivity, getAllActivities, getActivityByName, updateActivity, getActivityById } = require('../db/activities')
 const { getPublicRoutinesByActivity } = require('../db/routines')
 const { requireUser } = require("./utils.js");
 
 // GET /api/activities/:activityId/routines
 router.get('/:activityId/routines', async (req, res, next) => {
-    const { activityId } = req.params;
+    const { activityId } = activityId;
     try {
         // const activity = getPublicRoutinesByActivity(activityId)
         // res.status(200).send(activity)
@@ -46,5 +46,38 @@ router.post('/', requireUser, async (req, res, next) => {
 })
 
 // PATCH /api/activities/:activityId
+router.patch('/:activityId', requireUser, async (req, res, next) => {
+    try {
+        const { activityId } = req.params;
+        //check for activity in database
+        const activityExists = await getActivityById(activityId)
+        if(!activityExists) {
+            next({
+                error: "Activity update error",
+                name: "Activity doesn't exist",
+                message: `Activity ${activityId} not found`
+            })
+        }
+        //check for name conflict
+        const activityNameInUse = await getActivityByName(req.body.name)
+        if(activityNameInUse) {
+            next({
+              error: "Activity update error",
+              name: "Activity already exists",
+              message: `An activity with name ${req.body.name} already exists`
+            });
+        }
+        
+        const updatedActivity = await updateActivity({
+            id: activityId, 
+            name: req.body.name, 
+            description: req.body.description
+        });
+
+        res.status(200).send(updatedActivity);
+    } catch ({error, name, message}) {
+        next({name, error, message})
+    }
+})
 
 module.exports = router;

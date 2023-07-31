@@ -97,7 +97,7 @@ async function updateActivity({ id, ...fields }) {
     UPDATE activities
     SET name=$1, description=$2
     WHERE id=${id}
-    RETURNING *`
+    RETURNING *;`
     , [name, description])
     return updatedActivity
     } else if (name) {
@@ -108,7 +108,7 @@ async function updateActivity({ id, ...fields }) {
     UPDATE activities
     SET name=$1
     WHERE id=${id}
-    RETURNING *`,
+    RETURNING *;`,
         [name]
       );
       return updatedActivity;
@@ -120,7 +120,7 @@ async function updateActivity({ id, ...fields }) {
     UPDATE activities
     SET description=$1
     WHERE id=${id}
-    RETURNING *`,
+    RETURNING *;`,
         [description]
       );
       return updatedActivity;
