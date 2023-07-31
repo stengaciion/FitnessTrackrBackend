@@ -68,10 +68,14 @@ async function attachActivitiesToRoutines(routines) {
   // console.log("Routines before activities", routines)
   async function getActivitiesByRoutineId(routineId) {
     try {
-      const { rows: activities } = await client.query(`
-      SELECT * FROM activities 
-      WHERE id IN (SELECT "activityId" FROM routine_activities WHERE "routineId"=$1);`,
-      [routineId]);
+      const { rows: activities } = await client.query(
+        `
+      SELECT * FROM activities
+       JOIN routine_activities
+        ON routine_activities."activityId"=activities.id
+      WHERE activities.id IN (SELECT "activityId" FROM routine_activities WHERE "routineId"=$1);`,
+        [routineId]
+      );
 
       return activities;
     } catch (error) {

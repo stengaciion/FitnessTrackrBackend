@@ -7,8 +7,18 @@ const { requireUser } = require("./utils.js");
 // GET /api/activities/:activityId/routines
 router.get('/:activityId/routines', async (req, res, next) => {
     const { activityId } = req.params;
+    //check for activity
+    const activityExists = await getActivityById(activityId);
+    if (!activityExists) {
+      next({
+        error: "Activity update error",
+        name: "Activity doesn't exist",
+        message: `Activity ${activityId} not found`,
+      });
+    }
+
     try {
-        const publicRoutines = await getPublicRoutinesByActivity({activityId})
+        const publicRoutines = await getPublicRoutinesByActivity({id: activityId})
         res.status(200).send(publicRoutines)
     } catch ({error, name, message}) {
         next({error, name, message})        
