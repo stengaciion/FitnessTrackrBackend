@@ -51,7 +51,8 @@ CREATE TABLE routine_activities (
   "routineId" INTEGER REFERENCES routines(id),
   "activityId" INTEGER REFERENCES activities(id),
   duration INTEGER,
-  count INTEGER
+  count INTEGER,
+  UNIQUE ("routineId", "activityId")
 );
 `);
 

@@ -4,7 +4,7 @@ const { attachActivitiesToRoutines } = require("./activities");
 async function createRoutine({ creatorId, isPublic, name, goal }) {
   try {
     const { rows: [newRoutine] } = await client.query(`
-      INSERT INTO routines ("creatorId", "isPublic", name, goal) VALUES ($1, $2, $3, $4) RETURNING *`,
+      INSERT INTO routines ("creatorId", "isPublic", name, goal) VALUES ($1, $2, $3, $4) RETURNING *;`,
       [creatorId, isPublic, name, goal]
     );
     return newRoutine;
@@ -143,7 +143,6 @@ async function updateRoutine({ id, ...fields }) {
   const newString = Object.keys(fields)
     .map((key, index) => `"${key}"=$${index + 1}`)
     .join(",");
-
   try {
     if (newString.length > 0) {
       const {
@@ -157,7 +156,6 @@ async function updateRoutine({ id, ...fields }) {
       `,
         Object.values(fields)
       );
-
       return updatedRoutine;
     }
   } catch (error) {
