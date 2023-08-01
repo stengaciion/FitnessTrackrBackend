@@ -81,14 +81,15 @@ async function getAllPublicRoutines() {
 
 async function getAllRoutinesByUser({ username }) {
 try {
-  const { rows } = await client.query(`
+  const { rows: routines } = await client.query(`
    SELECT routines.*, users.username AS "creatorName"
       FROM routines
       JOIN users ON routines."creatorId"=users.Id
       WHERE username=$1;
   `,[username]);
   
-  return(rows);
+  const routinesWithActivities = await attachActivitiesToRoutines(routines)
+  return routinesWithActivities;
 } catch (error) {
   console.log("error gettin a routine by user");
   throw error;
@@ -97,7 +98,7 @@ try {
 
 async function getPublicRoutinesByUser({ username }) {
   try {
-    const { rows } = await client.query(
+    const { rows: routines } = await client.query(
       `
     SELECT routines.*, users.username AS "creatorName"
       FROM routines
@@ -106,7 +107,8 @@ async function getPublicRoutinesByUser({ username }) {
     `,
       [username]
     );
-    return rows;
+    const routinesWithActivities = await attachActivitiesToRoutines(routines)
+      return routinesWithActivities;
   } catch (error) {
     console.error("error getting a public routine by user");
     throw error;
