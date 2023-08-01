@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireUser } = require('./utils');
-const { getAllPublicRoutines, createRoutine, updateRoutine, getRoutineById } = require('../db/routines');
+const { getAllPublicRoutines, createRoutine, updateRoutine, getRoutineById, destroyRoutine } = require('../db/routines');
 
 // GET /api/routines
 router.get('/', async (req, res, next) => {
@@ -63,6 +63,26 @@ router.patch('/:routineId', requireUser, async (req, res, next) => {
 })
 
 // DELETE /api/routines/:routineId
+router.delete('/:routineId', requireUser, async (req, res, next) => {
+    try {
+        const { routineId } = req.params
+        //check if user is the creator
+        const routineCreator = await getRoutineById(routineId)
+        if (routineCreator.creatorId !== req.user.id) {
+            res.status(403).send({
+                error: "Unauthorized",
+                name: "Invalid User",
+                message: `User ${req.user.username} is not allowed to delete ${routineCreator.name}`
+            })
+        }
+
+        const {deletedRoutine} = await destroyRoutine(routineId);
+        res.status(200).send(deletedRoutine);
+
+    } catch ({error, name, message}) {
+        next({error, name, message})
+    }
+})
 
 // POST /api/routines/:routineId/activities
 
