@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { requireUser } = require('./utils');
 const { getAllPublicRoutines, createRoutine, updateRoutine, getRoutineById, destroyRoutine } = require('../db/routines');
+const { addActivityToRoutine, getRoutineActivitiesByRoutine } = require('../db/routine_activities')
 
 // GET /api/routines
 router.get('/', async (req, res, next) => {
@@ -85,5 +86,35 @@ router.delete('/:routineId', requireUser, async (req, res, next) => {
 })
 
 // POST /api/routines/:routineId/activities
+router.post('/:routineId/activities', requireUser, async (req, res, next) => {
+    try {
+        const { routineId } = req.params
+        //check for existing activity
+        const routineActivities = await getRoutineActivitiesByRoutine({id:routineId});
+        // console.log(routineActivities)
+        if (routineActivities.length) {
+            routineActivities.map((routine) => {
+                if (routine.activityId === req.body.activityId) {
+                    next({
+                      error: "Creation Error",
+                      name: "ActivityExistsInRoutine",
+                      message: `Activity ID ${req.body.activityId} already exists in Routine ID ${routineId}`,
+                    });
+                }
+            })
+        }
+
+        const addedActivity = await addActivityToRoutine({
+          routineId: routineId,
+          activityId: req.body.activityId,
+          count: req.body.count,
+          duration: req.body.duration
+        });
+        res.status(200).send(addedActivity);
+    } catch ({error, name, message}) {
+        next({error, name, message})
+    }
+    
+})
 
 module.exports = router;
